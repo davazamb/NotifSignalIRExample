@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -9,10 +11,26 @@ namespace NotifSignalIRExample
 {
     public class MvcApplication : System.Web.HttpApplication
     {
+        string con = ConfigurationManager.ConnectionStrings["sqlConString"].ConnectionString;
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            //Aca inicio de aplicacion con el sql dependecy
+            SqlDependency.Start(con);
+        }
+
+        protected void Session_Start(object sender, EventArgs e)
+        {
+            NotificatiorComponents NC = new NotificatiorComponents();
+            var currentTime = DateTime.Now;
+            HttpContext.Current.Session["LastUpdated"] = currentTime;
+            NC.RegisterNotification(currentTime);
+        }
+        protected void Application_End()
+        {
+            //Aca paramos el sql dependecy
+            SqlDependency.Stop(con);
         }
     }
 }
